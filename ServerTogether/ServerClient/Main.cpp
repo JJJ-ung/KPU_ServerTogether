@@ -26,7 +26,16 @@ public:
 		x = pos_x;
 		y = pos_y;
 	}
-
+	void MoveRight(int pos_x)
+	{
+		if ((x + pos_x) < 640 && (x + pos_x) >= 0)
+			x += pos_x;
+	}
+	void MoveUp(int pos_y)
+	{
+		if((y + pos_y) < 640 && (y + pos_y) >= 0)
+			y += pos_y;
+	}
 };
 
 
@@ -160,6 +169,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		InvalidateRect(hWnd, NULL, false);
 		break;
 	case WM_KEYDOWN:
+		if (wParam == VK_UP)
+		{
+			piece.MoveUp(-80);
+		}
+		if (wParam == VK_DOWN)
+		{
+			piece.MoveUp(80);
+		}
+		if (wParam == VK_LEFT)
+		{
+			piece.MoveRight(-80);
+		}
+		if (wParam == VK_RIGHT)
+		{
+			piece.MoveRight(80);
+		}
+		InvalidateRect(hWnd, NULL, false);
+
 		break;
 	case WM_PAINT:
 		static HBITMAP BackBit, oldBackBit;
