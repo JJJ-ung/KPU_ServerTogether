@@ -19,6 +19,9 @@
     <ClCompile Include="Server.cpp">
       <Filter>수업</Filter>
     </ClCompile>
+    <ClCompile Include="230320.cpp">
+      <Filter>수업</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include.h" />
