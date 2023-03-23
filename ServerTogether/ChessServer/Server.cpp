@@ -95,7 +95,6 @@ int main()
 		DWORD recv_flag = 0;
 		WSARecv(c_socket, mybuf, 1, &recv_byte, &recv_flag, 0, 0);
 		std::cout << "Data Recved" << std::endl;
-		std::cout << piece.Get_X() << std::endl;
 
 		piece.Move(mybuf[0]);
 		Vector2 SendPos = piece.GetXYPos();
@@ -104,6 +103,8 @@ int main()
 		mybuf[0].len = sizeof(SendPos);
 		WSASend(c_socket, mybuf, 1, &sent_byte, 0, 0, 0);
 		std::cout << "Data Send" << std::endl;
+		std::cout << "X : " << piece.Get_X() << "Y : " << piece.Get_Y()<< std::endl;
+
 
 	}
 	closesocket(c_socket);

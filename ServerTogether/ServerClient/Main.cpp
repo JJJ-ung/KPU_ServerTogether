@@ -41,7 +41,7 @@ public:
 	}
 	void MoveUp(int pos_y)
 	{
-		if((y + pos_y) < 640 && (y + pos_y) >= 0)
+		if ((y + pos_y) < 640 && (y + pos_y) >= 0)
 			y += pos_y;
 	}
 	void Move(char* buf)
@@ -112,7 +112,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 	std::wcout.imbue(std::locale("korean")); // 한글 출력을 위함
 	WSADATA WSAData;
 	WSAStartup(MAKEWORD(2, 0), &WSAData);
-	 //TCP 로 소켓 생성
+	//TCP 로 소켓 생성
 	SOCKADDR_IN server_addr;
 	ZeroMemory(&server_addr, sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
@@ -234,11 +234,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	case WM_KEYDOWN:
 		char buf[BUFSIZE];
 
-		memset(buf, wParam, sizeof(WPARAM));
+
+		memcpy(buf, &wParam, sizeof(WPARAM));
 		DWORD sent_byte;
 		WSABUF mybuf[1];
-		mybuf[0].buf = (char*) & wParam;
-		mybuf[0].len = static_cast<ULONG>(strlen(buf)) + 1;
+		mybuf[0].buf = buf;
+		mybuf[0].len = sizeof(WPARAM);
+		// static_cast<ULONG>(strlen(buf));
 		ret = WSASend(s_socket, mybuf, 1, &sent_byte, 0, 0, 0);
 
 		if (0 != ret)
@@ -262,7 +264,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_PAINT:
 		static HBITMAP BackBit, oldBackBit;
-	
+
 		hdc = BeginPaint(hWnd, &ps);
 		memdc = CreateCompatibleDC(hdc); // 메모리DC 생성
 		oldBackBit = (HBITMAP)SelectObject(memdc, Board); //비트맵 선택
@@ -275,20 +277,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		SelectObject(memdc, oldBackBit);
 		DeleteObject(BackBit);
 		EndPaint(hWnd, &ps);
-	
+
 
 		EndPaint(hWnd, &ps);
 		break;
 	case WM_TIMER:
 		break;
-	case WM_DESTROY:	
+	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
 		break;
 	}
 
 
-	
+
 
 	return (DefWindowProc(hWnd, iMessage, wParam, lParam));
 }
