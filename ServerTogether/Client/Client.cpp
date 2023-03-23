@@ -34,7 +34,8 @@ int main()
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_port = htons(SERVER_PORT);
 	inet_pton(AF_INET, SERVER_ADDR, &server_addr.sin_addr);
-	connect(s_socket, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr));
+	int ret = connect(s_socket, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr));
+
 	for (;;) {
 		char buf[BUFSIZE];
 		cout << "Enter Message : "; cin.getline(buf, BUFSIZE);
@@ -42,7 +43,7 @@ int main()
 		WSABUF mybuf[1];
 		mybuf[0].buf = buf; 
 		mybuf[0].len = static_cast<ULONG>(strlen(buf)) + 1;
-		int ret = WSASend(s_socket, mybuf, 1, &sent_byte, 0, 0, 0);
+		ret = WSASend(s_socket, mybuf, 1, &sent_byte, 0, 0, 0);
 		if (0 != ret)
 		{
 			int err_no = WSAGetLastError();

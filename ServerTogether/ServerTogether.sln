@@ -19,6 +19,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OverlappedServer", "Overlap
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OverlappedMultiServer", "OverlappedMultiServer\OverlappedMultiServer.vcxproj", "{40674B4B-0BCC-4335-BFAC-F4F178411BCF}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ChessServer", "ChessServer\ChessServer.vcxproj", "{201C5C97-E77E-476D-90AE-E0CB512D9438}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -75,6 +77,14 @@ Global
 		{40674B4B-0BCC-4335-BFAC-F4F178411BCF}.Release|x64.Build.0 = Release|x64
 		{40674B4B-0BCC-4335-BFAC-F4F178411BCF}.Release|x86.ActiveCfg = Release|Win32
 		{40674B4B-0BCC-4335-BFAC-F4F178411BCF}.Release|x86.Build.0 = Release|Win32
+		{201C5C97-E77E-476D-90AE-E0CB512D9438}.Debug|x64.ActiveCfg = Debug|x64
+		{201C5C97-E77E-476D-90AE-E0CB512D9438}.Debug|x64.Build.0 = Debug|x64
+		{201C5C97-E77E-476D-90AE-E0CB512D9438}.Debug|x86.ActiveCfg = Debug|Win32
+		{201C5C97-E77E-476D-90AE-E0CB512D9438}.Debug|x86.Build.0 = Debug|Win32
+		{201C5C97-E77E-476D-90AE-E0CB512D9438}.Release|x64.ActiveCfg = Release|x64
+		{201C5C97-E77E-476D-90AE-E0CB512D9438}.Release|x64.Build.0 = Release|x64
+		{201C5C97-E77E-476D-90AE-E0CB512D9438}.Release|x86.ActiveCfg = Release|Win32
+		{201C5C97-E77E-476D-90AE-E0CB512D9438}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

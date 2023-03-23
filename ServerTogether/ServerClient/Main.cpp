@@ -1,12 +1,20 @@
-#include <Windows.h>
+//#include <Windows.h>
+#include <iostream>
+#include <WS2tcpip.h>
 #include "resource.h"
 
-#pragma comment(lib,"winmm.lib")
-#pragma comment(lib, "msimg32.lib")
+#pragma comment (lib, "WS2_32.LIB")
+const char* SERVER_ADDR = "127.0.0.1";
+const short SERVER_PORT = 4000;
+const int BUFSIZE = 256;
 
+#pragma comment(linker,"/entry:WinMainCRTStartup /subsystem:console")
 
-//#pragma comment(linker,"/entry:WinMainCRTStartup /subsystem:console")
-
+struct Vector2
+{
+	int x;
+	int y;
+};
 class Piece
 {
 	int x = 0;
@@ -36,19 +44,53 @@ public:
 		if((y + pos_y) < 640 && (y + pos_y) >= 0)
 			y += pos_y;
 	}
+	void Move(char* buf)
+	{
+		WPARAM data = (WPARAM)*buf;
+
+		if (data == VK_UP)
+		{
+			MoveUp(-80);
+		}
+		if (data == VK_DOWN)
+		{
+			MoveUp(80);
+		}
+		if (data == VK_LEFT)
+		{
+			MoveRight(-80);
+		}
+		if (data == VK_RIGHT)
+		{
+			MoveRight(80);
+		}
+	}
 };
 
 
+void error_display(const char* msg, int err_no)
+{
+	WCHAR* lpMsgBuf;
+	FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER |
+		FORMAT_MESSAGE_FROM_SYSTEM,
+		NULL, err_no,
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPTSTR)&lpMsgBuf, 0, NULL);
+	std::cout << msg;
+	std::wcout << L"에러 " << lpMsgBuf << std::endl;
+	while (true);
+	LocalFree(lpMsgBuf);
+}
 
 HINSTANCE g_hInst;
 LPCTSTR lpszClass = L"Window Class Name";
 LPCTSTR lpszWindowName = L"Chess";
 LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
+SOCKET s_socket;
 HWND hWnd;
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdParam, int nCmdShow)
 {
-
 	MSG Message;
 	WNDCLASSEX WndClass;
 	g_hInst = hInstance;
@@ -67,6 +109,23 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 	WndClass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 	RegisterClassEx(&WndClass);
 
+	std::wcout.imbue(std::locale("korean")); // 한글 출력을 위함
+	WSADATA WSAData;
+	WSAStartup(MAKEWORD(2, 0), &WSAData);
+	 //TCP 로 소켓 생성
+	SOCKADDR_IN server_addr;
+	ZeroMemory(&server_addr, sizeof(server_addr));
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_port = htons(SERVER_PORT);
+	inet_pton(AF_INET, SERVER_ADDR, &server_addr.sin_addr);
+	s_socket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, 0, 0, 0);
+
+	int ret = connect(s_socket, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr));
+	if (0 != ret)
+	{
+		int err_no = WSAGetLastError();
+		error_display("connect : ", err_no);
+	}
 	hWnd = CreateWindow(lpszClass, lpszWindowName, WS_SYSMENU, 0, 0, 650, 680, NULL, (HMENU)NULL, hInstance, NULL);
 
 	ShowWindow(hWnd, nCmdShow);
@@ -85,7 +144,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	static HBITMAP Board, Knight;
 	static Piece piece(80, 80);
 	RECT r = { 0, 0, 640, 640 };
+
+	DWORD recv_byte;
+	DWORD recv_flag = 0;
 	int mx, my;
+	int ret = 0;
 	switch (iMessage) {
 	case WM_CREATE:
 		Board = (HBITMAP)LoadBitmap(g_hInst, MAKEINTRESOURCE(IDB_BITMAP1));
@@ -169,22 +232,31 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		InvalidateRect(hWnd, NULL, false);
 		break;
 	case WM_KEYDOWN:
-		if (wParam == VK_UP)
+		char buf[BUFSIZE];
+
+		memset(buf, wParam, sizeof(WPARAM));
+		DWORD sent_byte;
+		WSABUF mybuf[1];
+		mybuf[0].buf = (char*) & wParam;
+		mybuf[0].len = static_cast<ULONG>(strlen(buf)) + 1;
+		ret = WSASend(s_socket, mybuf, 1, &sent_byte, 0, 0, 0);
+
+		if (0 != ret)
 		{
-			piece.MoveUp(-80);
+			int err_no = WSAGetLastError();
+			error_display("WSASend : ", err_no);
 		}
-		if (wParam == VK_DOWN)
-		{
-			piece.MoveUp(80);
-		}
-		if (wParam == VK_LEFT)
-		{
-			piece.MoveRight(-80);
-		}
-		if (wParam == VK_RIGHT)
-		{
-			piece.MoveRight(80);
-		}
+
+
+		char recv_buf[BUFSIZE];
+		WSABUF mybuf_r[1];
+		mybuf_r[0].buf = recv_buf; mybuf_r[0].len = BUFSIZE;
+
+		WSARecv(s_socket, mybuf_r, 1, &recv_byte, &recv_flag, 0, 0);
+		Vector2 RecvedData;
+		memcpy(&RecvedData, mybuf_r[0].buf, sizeof(RecvedData));
+		std::cout << "X : " << RecvedData.x << ", Y : " << RecvedData.y << std::endl;
+		piece.SetPos(RecvedData.x, RecvedData.y);
 		InvalidateRect(hWnd, NULL, false);
 
 		break;
@@ -203,6 +275,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		SelectObject(memdc, oldBackBit);
 		DeleteObject(BackBit);
 		EndPaint(hWnd, &ps);
+	
 
 		EndPaint(hWnd, &ps);
 		break;
@@ -213,5 +286,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		return 0;
 		break;
 	}
+
+
+	
+
 	return (DefWindowProc(hWnd, iMessage, wParam, lParam));
 }
