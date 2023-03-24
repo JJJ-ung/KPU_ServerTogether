@@ -10,6 +10,12 @@
     <ClCompile Include="230314.cpp">
       <Filter>수업</Filter>
     </ClCompile>
+    <ClCompile Include="230321.cpp">
+      <Filter>수업</Filter>
+    </ClCompile>
+    <ClCompile Include="230321_chat.cpp">
+      <Filter>수업</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include.h" />
