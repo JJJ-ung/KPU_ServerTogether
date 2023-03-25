@@ -1,13 +1,13 @@
 //#include <Windows.h>
 #include <iostream>
 #include <WS2tcpip.h>
+#include <unordered_map>
 #include "resource.h"
 
 #pragma comment (lib, "WS2_32.LIB")
 const char* SERVER_ADDR = "127.0.0.1";
 const short SERVER_PORT = 4000;
-const int BUFSIZE = 256;
-
+constexpr int BUFSIZE = 4096;
 #pragma comment(linker,"/entry:WinMainCRTStartup /subsystem:console")
 
 struct Vector2
@@ -33,6 +33,11 @@ public:
 	{
 		x = pos_x;
 		y = pos_y;
+	}
+	void SetPos(Vector2 Pos)
+	{
+		x = Pos.x;
+		y = Pos.y;
 	}
 	void MoveRight(int pos_x)
 	{
@@ -68,6 +73,9 @@ public:
 };
 
 
+
+
+
 void error_display(const char* msg, int err_no)
 {
 	WCHAR* lpMsgBuf;
@@ -83,12 +91,67 @@ void error_display(const char* msg, int err_no)
 	LocalFree(lpMsgBuf);
 }
 
+
+
+
+
 HINSTANCE g_hInst;
 LPCTSTR lpszClass = L"Window Class Name";
 LPCTSTR lpszWindowName = L"Chess";
 LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-SOCKET s_socket;
 HWND hWnd;
+std::unordered_map <unsigned long long, Piece> Players;
+
+WSAOVERLAPPED s_over;
+SOCKET s_socket;
+WSABUF s_wsabuf[1];
+char   s_buf[BUFSIZE];
+
+void CALLBACK recv_callback(DWORD err, DWORD num_bytes, LPWSAOVERLAPPED recv_over, DWORD f)
+{
+	std::cout << "err : " << err << std::endl;
+	char* p = s_buf;
+	while (p < s_buf + num_bytes) {
+		char packet_size = *p;
+		int c_id = *(p + 1);
+		if (*(p + 2) == -1)
+		{
+			Players.erase(c_id);
+		}
+		else {
+			Vector2 RecvedPos;
+			memcpy(&RecvedPos, p + 2, sizeof(Vector2));
+
+			if (Players.find(c_id) != Players.end()) {
+				Players[c_id].SetPos(RecvedPos);
+			}
+			else
+			{
+				Piece p;
+				p.SetPos(RecvedPos);
+				Players.insert({ c_id,p });
+			}
+		}
+		p = p + packet_size;
+		
+	}
+
+	DWORD r_flag = 0;
+	memset(recv_over, 0, sizeof(*recv_over));
+	WSARecv(s_socket, s_wsabuf, 1, 0, &r_flag, recv_over, recv_callback);
+
+	InvalidateRect(hWnd, NULL, false);
+}
+
+
+void CALLBACK send_callback(DWORD err, DWORD num_bytes, LPWSAOVERLAPPED over, DWORD flags)
+{
+	s_wsabuf[0].len = BUFSIZE;
+	DWORD r_flag = 0;
+
+	
+}
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdParam, int nCmdShow)
 {
 	MSG Message;
@@ -118,7 +181,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_port = htons(SERVER_PORT);
 	inet_pton(AF_INET, SERVER_ADDR, &server_addr.sin_addr);
-	s_socket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, 0, 0, 0);
+	s_socket = WSASocket(AF_INET, SOCK_STREAM, 0, 0, 0, WSA_FLAG_OVERLAPPED);
 
 	int ret = connect(s_socket, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr));
 	if (0 != ret)
@@ -130,9 +193,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 
 	ShowWindow(hWnd, nCmdShow);
 	UpdateWindow(hWnd);
+
+	DWORD r_flag = 0;
+	memset(&s_over, 0, sizeof(s_over));
+	WSARecv(s_socket, s_wsabuf, 1, 0, &r_flag, &s_over, recv_callback);
+
 	while (GetMessage(&Message, 0, 0, 0)) {
+		SleepEx(0, true);
 		TranslateMessage(&Message);
 		DispatchMessage(&Message);
+	
 	}
 	return Message.wParam;
 }
@@ -153,6 +223,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	case WM_CREATE:
 		Board = (HBITMAP)LoadBitmap(g_hInst, MAKEINTRESOURCE(IDB_BITMAP1));
 		Knight = (HBITMAP)LoadBitmap(g_hInst, MAKEINTRESOURCE(IDB_BITMAP2));
+
+		memcpy(s_buf, &wParam, sizeof(WPARAM));
+
+		s_wsabuf[0].buf = s_buf;
+		s_wsabuf[0].len = static_cast<int>(strlen(s_buf)) + 1;
+		memset(&s_over, 0, sizeof(s_over));
+		ret = WSASend(s_socket, s_wsabuf, 1, 0, 0, &s_over, send_callback);
+
 		break;
 
 	case WM_LBUTTONDOWN:
@@ -228,39 +306,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		}
 
 
-		piece.SetPos(mx, my);
+
 		InvalidateRect(hWnd, NULL, false);
 		break;
 	case WM_KEYDOWN:
-		char buf[BUFSIZE];
+		memcpy(s_buf, &wParam, sizeof(WPARAM));
 
-
-		memcpy(buf, &wParam, sizeof(WPARAM));
-		DWORD sent_byte;
-		WSABUF mybuf[1];
-		mybuf[0].buf = buf;
-		mybuf[0].len = sizeof(WPARAM);
-		// static_cast<ULONG>(strlen(buf));
-		ret = WSASend(s_socket, mybuf, 1, &sent_byte, 0, 0, 0);
+		s_wsabuf[0].buf = s_buf;
+		s_wsabuf[0].len = static_cast<int>(strlen(s_buf)) + 1;
+		memset(&s_over, 0, sizeof(s_over));
+		ret = WSASend(s_socket, s_wsabuf, 1, 0, 0, &s_over, send_callback);
 
 		if (0 != ret)
 		{
 			int err_no = WSAGetLastError();
 			error_display("WSASend : ", err_no);
 		}
-
-
-		char recv_buf[BUFSIZE];
-		WSABUF mybuf_r[1];
-		mybuf_r[0].buf = recv_buf; mybuf_r[0].len = BUFSIZE;
-
-		WSARecv(s_socket, mybuf_r, 1, &recv_byte, &recv_flag, 0, 0);
-		Vector2 RecvedData;
-		memcpy(&RecvedData, mybuf_r[0].buf, sizeof(RecvedData));
-		std::cout << "X : " << RecvedData.x << ", Y : " << RecvedData.y << std::endl;
-		piece.SetPos(RecvedData.x, RecvedData.y);
-		InvalidateRect(hWnd, NULL, false);
-
+		
 		break;
 	case WM_PAINT:
 		static HBITMAP BackBit, oldBackBit;
@@ -272,8 +334,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		BitBlt(hdc, 0, 0, 640, 640, memdc, 0, 0, SRCCOPY); //복사 및 출력
 
 		SelectObject(memdc, Knight);
-		BitBlt(hdc, piece.Get_X(), piece.Get_Y(), 640, 640, memdc, 0, 0, SRCCOPY); //복사 및 출력
-
+		for (auto& player : Players)
+		{
+			BitBlt(hdc, player.second.Get_X(), player.second.Get_Y(), 640, 640, memdc, 0, 0, SRCCOPY); //복사 및 출력
+		}
 		SelectObject(memdc, oldBackBit);
 		DeleteObject(BackBit);
 		EndPaint(hWnd, &ps);
@@ -284,6 +348,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	case WM_TIMER:
 		break;
 	case WM_DESTROY:
+		memset(s_buf, -1, sizeof(char));
+		WSASend(s_socket, s_wsabuf, 1, 0, 0, &s_over, send_callback);
+		closesocket(s_socket);
+		WSACleanup();
 		PostQuitMessage(0);
 		return 0;
 		break;

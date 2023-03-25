@@ -1,5 +1,6 @@
 #include <iostream>
 #include <WS2tcpip.h>
+#include <unordered_map>
 using namespace std;
 #pragma comment (lib, "WS2_32.LIB")
 const short SERVER_PORT = 4000;
@@ -16,7 +17,7 @@ class Piece
 	int x = 0;
 	int y = 0;
 public:
-	Piece() {}
+	Piece() { x = 80, y = 80; }
 	Piece(int pos_x, int pos_y) : x(pos_x), y(pos_y)
 	{
 
@@ -41,10 +42,12 @@ public:
 		if ((y + pos_y) < 640 && (y + pos_y) >= 0)
 			y += pos_y;
 	}
-	void Move(WSABUF buf)
+	void Move(char data)
 	{
-		WPARAM data;
-		memcpy(&data, buf.buf, sizeof(WPARAM));
+		//WPARAM data;
+		//memcpy(&data, buf, sizeof(WPARAM));
+		//std::cout << buf << std::endl;
+		//std::cout << data << std::endl;
 		if (data == VK_UP)
 		{
 			std::cout << "Move Up" << std::endl;
@@ -68,6 +71,107 @@ public:
 	}
 };
 
+void CALLBACK send_callback(DWORD err, DWORD num_bytes, LPWSAOVERLAPPED send_over, DWORD recv_flag);
+void CALLBACK recv_callback(DWORD err, DWORD num_bytes, LPWSAOVERLAPPED recv_over, DWORD recv_flag);
+
+class EXP_OVER {
+public:
+	WSAOVERLAPPED _wsa_over;
+	unsigned long long _s_id;
+	WSABUF _wsa_buf;
+	char _send_msg[BUFSIZE];
+public:
+	EXP_OVER(unsigned long long s_id, char num_bytes, const char* mess) : _s_id(s_id)
+	{
+		ZeroMemory(&_wsa_over, sizeof(_wsa_over));
+		_wsa_buf.buf = _send_msg;
+		_wsa_buf.len = num_bytes + 2;
+
+		memcpy(_send_msg + 2, mess, num_bytes);
+		_send_msg[0] = num_bytes + 2;
+		_send_msg[1] = static_cast<char>(s_id);
+	}
+	EXP_OVER(unsigned long long s_id)
+	{
+		ZeroMemory(&_wsa_over, sizeof(_wsa_over));
+		_wsa_buf.buf = _send_msg;
+		_wsa_buf.len = 3;
+
+		memset(_send_msg + 2, -1, sizeof(char));
+		_send_msg[0] = 3;
+		_send_msg[1] = static_cast<char>(s_id);
+	}
+	~EXP_OVER() {}
+};
+
+
+class SESSION {
+private:
+	unsigned long long   _id;
+	
+	WSABUF _send_wsabuf;
+	WSAOVERLAPPED _recv_over;
+	SOCKET _socket;
+
+
+public:
+	Piece piece; 
+	WSABUF _recv_wsabuf;
+	char   _recv_buf[BUFSIZE];
+	SESSION() {
+		cout << "Unexpected Constructor Call Error!\n";
+		exit(-1);
+	}
+	SESSION(int id, SOCKET s) : _id(id), _socket(s) {
+		_recv_wsabuf.buf = _recv_buf;    _recv_wsabuf.len = BUFSIZE;
+		_send_wsabuf.buf = _recv_buf;    _send_wsabuf.len = 0;
+	}
+	~SESSION() { closesocket(_socket); }
+	void do_recv() {
+		DWORD recv_flag = 0;
+		ZeroMemory(&_recv_over, sizeof(_recv_over));
+		_recv_over.hEvent = reinterpret_cast<HANDLE>(_id);
+		WSARecv(_socket, &_recv_wsabuf, 1, 0, &recv_flag, &_recv_over, recv_callback);
+	}
+
+	void do_send(unsigned long long sender_id, int num_bytes, const char* buff) {
+		EXP_OVER* send_over = new EXP_OVER(sender_id, num_bytes, buff);
+		WSASend(_socket, &send_over->_wsa_buf, 1, 0, 0, &send_over->_wsa_over, send_callback);
+	}
+
+	void do_send_leave(unsigned long long leaved_id)
+	{
+		EXP_OVER* send_over = new EXP_OVER(leaved_id);
+		WSASend(_socket, &send_over->_wsa_buf, 1, 0, 0, &send_over->_wsa_over, send_callback);
+	}
+};
+
+unordered_map <unsigned long long, SESSION> clients;
+
+void CALLBACK send_callback(DWORD err, DWORD num_bytes, LPWSAOVERLAPPED send_over, DWORD recv_flag)
+{
+	delete reinterpret_cast<EXP_OVER*>(send_over);
+}
+
+void CALLBACK recv_callback(DWORD err, DWORD num_bytes, LPWSAOVERLAPPED recv_over, DWORD recv_flag)
+{
+	unsigned long long s_id = reinterpret_cast<unsigned long long>(recv_over->hEvent);
+	cout << "Client [" << s_id << "] Sent[" << num_bytes << "bytes] : " << clients[s_id]._recv_buf << endl;
+	if (clients[s_id]._recv_buf[0] == -1)
+	{
+		clients.erase(s_id);
+		for (auto& cl : clients)
+			cl.second.do_send_leave(s_id);
+		return;
+	}
+	clients[s_id].piece.Move(clients[s_id]._recv_buf[0]);
+	Vector2 SendPos = clients[s_id].piece.GetXYPos();
+	char buf[BUFSIZE];
+	memcpy(buf, &SendPos, sizeof(SendPos));
+	for (auto& cl : clients)
+		cl.second.do_send(s_id, sizeof(Vector2), buf);
+	clients[s_id].do_recv();
+}
 
 
 
@@ -75,7 +179,7 @@ int main()
 {
 	WSADATA WSAData;
 	WSAStartup(MAKEWORD(2, 0), &WSAData);
-	SOCKET s_socket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, 0, 0, 0);
+	SOCKET s_socket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, 0, 0, WSA_FLAG_OVERLAPPED);
 	SOCKADDR_IN server_addr;
 	ZeroMemory(&server_addr, sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
@@ -83,31 +187,19 @@ int main()
 	server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	bind(s_socket, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr));
 	listen(s_socket, SOMAXCONN);
-	Piece piece(80, 80);
 
 	INT addr_size = sizeof(server_addr);
-	SOCKET c_socket = WSAAccept(s_socket, reinterpret_cast<sockaddr*>(&server_addr), &addr_size, 0, 0);
-	for (;;) {
-		char recv_buf[BUFSIZE];
-		WSABUF mybuf[1];
-		mybuf[0].buf = recv_buf; mybuf[0].len = BUFSIZE;
-		DWORD recv_byte;
-		DWORD recv_flag = 0;
-		WSARecv(c_socket, mybuf, 1, &recv_byte, &recv_flag, 0, 0);
-		std::cout << "Data Recved" << std::endl;
-
-		piece.Move(mybuf[0]);
-		Vector2 SendPos = piece.GetXYPos();
-		DWORD sent_byte;
-		mybuf[0].buf = (char*)&SendPos;
-		mybuf[0].len = sizeof(SendPos);
-		WSASend(c_socket, mybuf, 1, &sent_byte, 0, 0, 0);
-		std::cout << "Data Send" << std::endl;
-		std::cout << "X : " << piece.Get_X() << "Y : " << piece.Get_Y()<< std::endl;
-
-
+	for (int i = 1; ; ++i) {
+		SOCKET c_socket = WSAAccept(s_socket, reinterpret_cast<sockaddr*>(&server_addr), &addr_size, 0, 0);
+		clients.try_emplace(i, i, c_socket);
+		std::cout << "[" << i << "]" << " Player Join" << std::endl;
+		//Vector2 SendPos = clients[i].piece.GetXYPos();
+		//char buf[BUFSIZE];
+		//memcpy(buf, &SendPos, sizeof(SendPos));
+		//clients[i].do_send(i, sizeof(Vector2), buf);
+		clients[i].do_recv();
 	}
-	closesocket(c_socket);
+
 	closesocket(s_socket);
 	WSACleanup();
 }
