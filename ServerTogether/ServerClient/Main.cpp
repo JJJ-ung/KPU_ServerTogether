@@ -103,13 +103,15 @@ HWND hWnd;
 std::unordered_map <unsigned long long, Piece> Players;
 
 WSAOVERLAPPED s_over;
+WSAOVERLAPPED r_over;
 SOCKET s_socket;
 WSABUF s_wsabuf[1];
+WSABUF r_wsabuf[1];
 char   s_buf[BUFSIZE];
 
 void CALLBACK recv_callback(DWORD err, DWORD num_bytes, LPWSAOVERLAPPED recv_over, DWORD f)
 {
-	std::cout << "err : " << err << std::endl;
+	std::cout << "bytes : " << num_bytes << std::endl;
 	char* p = s_buf;
 	while (p < s_buf + num_bytes) {
 		char packet_size = *p;
@@ -117,6 +119,10 @@ void CALLBACK recv_callback(DWORD err, DWORD num_bytes, LPWSAOVERLAPPED recv_ove
 		if (*(p + 2) == -1)
 		{
 			Players.erase(c_id);
+		}
+		else if (c_id == 0)
+		{
+			
 		}
 		else {
 			Vector2 RecvedPos;
@@ -138,7 +144,7 @@ void CALLBACK recv_callback(DWORD err, DWORD num_bytes, LPWSAOVERLAPPED recv_ove
 
 	DWORD r_flag = 0;
 	memset(recv_over, 0, sizeof(*recv_over));
-	WSARecv(s_socket, s_wsabuf, 1, 0, &r_flag, recv_over, recv_callback);
+	WSARecv(s_socket, r_wsabuf, 1, 0, &r_flag, recv_over, recv_callback);
 
 	InvalidateRect(hWnd, NULL, false);
 }
@@ -194,15 +200,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 	ShowWindow(hWnd, nCmdShow);
 	UpdateWindow(hWnd);
 
-	DWORD r_flag = 0;
-	memset(&s_over, 0, sizeof(s_over));
-	WSARecv(s_socket, s_wsabuf, 1, 0, &r_flag, &s_over, recv_callback);
 
 	while (GetMessage(&Message, 0, 0, 0)) {
-		SleepEx(0, true);
+	
 		TranslateMessage(&Message);
 		DispatchMessage(&Message);
-	
+		SleepEx(0, true);
 	}
 	return Message.wParam;
 }
@@ -214,7 +217,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	static HBITMAP Board, Knight;
 	static Piece piece(80, 80);
 	RECT r = { 0, 0, 640, 640 };
-
+	WPARAM data = 0x27;
 	DWORD recv_byte;
 	DWORD recv_flag = 0;
 	int mx, my;
@@ -224,13 +227,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		Board = (HBITMAP)LoadBitmap(g_hInst, MAKEINTRESOURCE(IDB_BITMAP1));
 		Knight = (HBITMAP)LoadBitmap(g_hInst, MAKEINTRESOURCE(IDB_BITMAP2));
 
+		
 		memcpy(s_buf, &wParam, sizeof(WPARAM));
 
 		s_wsabuf[0].buf = s_buf;
 		s_wsabuf[0].len = static_cast<int>(strlen(s_buf)) + 1;
 		memset(&s_over, 0, sizeof(s_over));
 		ret = WSASend(s_socket, s_wsabuf, 1, 0, 0, &s_over, send_callback);
-
+		
+		r_wsabuf[0].buf = s_buf;
+		r_wsabuf[0].len = BUFSIZE;
+		memset(&r_over, 0, sizeof(r_over));
+		WSARecv(s_socket, r_wsabuf, 1, 0, &recv_flag, &r_over, recv_callback);
+		SleepEx(0, true);
 		break;
 
 	case WM_LBUTTONDOWN:

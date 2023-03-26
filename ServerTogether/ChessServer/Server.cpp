@@ -17,7 +17,7 @@ class Piece
 	int x = 0;
 	int y = 0;
 public:
-	Piece() { x = 80, y = 80; }
+	Piece() { x = 0, y = 0; }
 	Piece(int pos_x, int pos_y) : x(pos_x), y(pos_y)
 	{
 
@@ -171,6 +171,7 @@ void CALLBACK recv_callback(DWORD err, DWORD num_bytes, LPWSAOVERLAPPED recv_ove
 	for (auto& cl : clients)
 		cl.second.do_send(s_id, sizeof(Vector2), buf);
 	clients[s_id].do_recv();
+	SleepEx(0, true);
 }
 
 
@@ -193,11 +194,21 @@ int main()
 		SOCKET c_socket = WSAAccept(s_socket, reinterpret_cast<sockaddr*>(&server_addr), &addr_size, 0, 0);
 		clients.try_emplace(i, i, c_socket);
 		std::cout << "[" << i << "]" << " Player Join" << std::endl;
-		//Vector2 SendPos = clients[i].piece.GetXYPos();
-		//char buf[BUFSIZE];
-		//memcpy(buf, &SendPos, sizeof(SendPos));
+
+		char buf[BUFSIZE];
 		//clients[i].do_send(i, sizeof(Vector2), buf);
+		Vector2 SendPos;
+
+		for (auto& cl : clients) {
+			SendPos = clients[i].piece.GetXYPos();
+			memcpy(buf, &SendPos, sizeof(SendPos));
+			cl.second.do_send(i, sizeof(Vector2), buf);
+			SendPos = cl.second.piece.GetXYPos();
+			memcpy(buf, &SendPos, sizeof(Vector2));
+			clients[i].do_send(cl.first, sizeof(Vector2), buf);
+		}
 		clients[i].do_recv();
+		
 	}
 
 	closesocket(s_socket);
