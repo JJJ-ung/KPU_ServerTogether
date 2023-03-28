@@ -5,19 +5,32 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="수업\00 Overlapped">
+      <UniqueIdentifier>{b78211d2-1a1a-41de-b631-99414cc8a2b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="수업\01 IOCP">
+      <UniqueIdentifier>{97c4fdaa-f7d1-4912-b750-d6923fa0f018}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="230314.cpp">
-      <Filter>수업</Filter>
+      <Filter>수업\00 Overlapped</Filter>
     </ClCompile>
     <ClCompile Include="230321.cpp">
-      <Filter>수업</Filter>
+      <Filter>수업\00 Overlapped</Filter>
     </ClCompile>
     <ClCompile Include="230321_chat.cpp">
-      <Filter>수업</Filter>
+      <Filter>수업\00 Overlapped</Filter>
+    </ClCompile>
+    <ClCompile Include="230328_CLIENTsample.cpp">
+      <Filter>수업\01 IOCP</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include.h" />
+    <ClInclude Include="..\Binary\protocol.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

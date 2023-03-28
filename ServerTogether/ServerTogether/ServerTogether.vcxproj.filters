@@ -4,29 +4,42 @@
     <Filter Include="수업">
       <UniqueIdentifier>{dfbde84d-96bc-446e-8ce5-b4fbbf810fbc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="수업\00 Overlapped">
+      <UniqueIdentifier>{dc786878-5d4a-4c5b-b8cc-48ffea21ce4d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="수업\01 IOCP">
+      <UniqueIdentifier>{21a85e99-9eb1-43c5-b9cc-966d1afa3c1f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="230307.cpp">
-      <Filter>수업</Filter>
-    </ClCompile>
     <ClCompile Include="ServerTogether.cpp" />
+    <ClCompile Include="230307.cpp">
+      <Filter>수업\00 Overlapped</Filter>
+    </ClCompile>
     <ClCompile Include="230313.cpp">
-      <Filter>수업</Filter>
+      <Filter>수업\00 Overlapped</Filter>
     </ClCompile>
     <ClCompile Include="230314.cpp">
-      <Filter>수업</Filter>
+      <Filter>수업\00 Overlapped</Filter>
     </ClCompile>
     <ClCompile Include="230321.cpp">
-      <Filter>수업</Filter>
+      <Filter>수업\00 Overlapped</Filter>
     </ClCompile>
     <ClCompile Include="230321_chat.cpp">
-      <Filter>수업</Filter>
+      <Filter>수업\00 Overlapped</Filter>
     </ClCompile>
     <ClCompile Include="230321_multi.cpp">
-      <Filter>수업</Filter>
+      <Filter>수업\00 Overlapped</Filter>
+    </ClCompile>
+    <ClCompile Include="230328_serversample.cpp">
+      <Filter>수업\01 IOCP</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include.h" />
+    <ClInclude Include="..\Binary\protocol.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
