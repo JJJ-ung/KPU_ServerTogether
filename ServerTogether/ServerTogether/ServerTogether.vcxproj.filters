@@ -34,6 +34,12 @@
     <ClCompile Include="230328_serversample.cpp">
       <Filter>수업\01 IOCP</Filter>
     </ClCompile>
+    <ClCompile Include="230404_MultiThread.cpp">
+      <Filter>수업\01 IOCP</Filter>
+    </ClCompile>
+    <ClCompile Include="230404_MultiThread0.cpp">
+      <Filter>수업\01 IOCP</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include.h" />
