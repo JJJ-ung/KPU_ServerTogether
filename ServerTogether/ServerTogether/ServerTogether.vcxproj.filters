@@ -7,7 +7,10 @@
     <Filter Include="수업\00 Overlapped">
       <UniqueIdentifier>{dc786878-5d4a-4c5b-b8cc-48ffea21ce4d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="수업\01 IOCP">
+    <Filter Include="수업\02 Multithread">
+      <UniqueIdentifier>{dc214ebe-de62-4295-8657-60a6cd3467ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="수업\01 IOCP+Multithread">
       <UniqueIdentifier>{21a85e99-9eb1-43c5-b9cc-966d1afa3c1f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -32,13 +35,25 @@
       <Filter>수업\00 Overlapped</Filter>
     </ClCompile>
     <ClCompile Include="230328_serversample.cpp">
-      <Filter>수업\01 IOCP</Filter>
+      <Filter>수업\01 IOCP+Multithread</Filter>
     </ClCompile>
     <ClCompile Include="230404_MultiThread.cpp">
-      <Filter>수업\01 IOCP</Filter>
+      <Filter>수업\01 IOCP+Multithread</Filter>
     </ClCompile>
     <ClCompile Include="230404_MultiThread0.cpp">
-      <Filter>수업\01 IOCP</Filter>
+      <Filter>수업\01 IOCP+Multithread</Filter>
+    </ClCompile>
+    <ClCompile Include="230410_1_Multithread_IOCP.cpp">
+      <Filter>수업\01 IOCP+Multithread</Filter>
+    </ClCompile>
+    <ClCompile Include="230410_0_Mutex.cpp">
+      <Filter>수업\01 IOCP+Multithread</Filter>
+    </ClCompile>
+    <ClCompile Include="230411_0_MutexIOCP.cpp">
+      <Filter>수업\01 IOCP+Multithread</Filter>
+    </ClCompile>
+    <ClCompile Include="230411_1_Multitrhead.cpp">
+      <Filter>수업\02 Multithread</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
