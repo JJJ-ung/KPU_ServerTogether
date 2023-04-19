@@ -11,6 +11,9 @@
     <Filter Include="수업\01 IOCP">
       <UniqueIdentifier>{97c4fdaa-f7d1-4912-b750-d6923fa0f018}</UniqueIdentifier>
     </Filter>
+    <Filter Include="수업\02 StressTest">
+      <UniqueIdentifier>{3ddec015-6a3b-4bfe-9c21-dc92deaa22c2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="230314.cpp">
@@ -24,6 +27,9 @@
     </ClCompile>
     <ClCompile Include="230328_CLIENTsample.cpp">
       <Filter>수업\01 IOCP</Filter>
+    </ClCompile>
+    <ClCompile Include="client.cpp">
+      <Filter>수업\02 StressTest</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

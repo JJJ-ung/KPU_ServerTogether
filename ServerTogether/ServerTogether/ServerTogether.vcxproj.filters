@@ -13,6 +13,9 @@
     <Filter Include="수업\01 IOCP+Multithread">
       <UniqueIdentifier>{21a85e99-9eb1-43c5-b9cc-966d1afa3c1f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="수업\03 StressTest">
+      <UniqueIdentifier>{47339ec2-ed3d-4ff8-a5d2-de5840a12c25}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ServerTogether.cpp" />
@@ -55,10 +58,25 @@
     <ClCompile Include="230411_1_Multitrhead.cpp">
       <Filter>수업\02 Multithread</Filter>
     </ClCompile>
+    <ClCompile Include="230417_0_MemoryConsistency.cpp">
+      <Filter>수업\02 Multithread</Filter>
+    </ClCompile>
+    <ClCompile Include="230417_1_Atomic.cpp">
+      <Filter>수업\02 Multithread</Filter>
+    </ClCompile>
+    <ClCompile Include="230418_0_CAS_WaitFree.cpp">
+      <Filter>수업\02 Multithread</Filter>
+    </ClCompile>
+    <ClCompile Include="multi_iocp_server.cpp">
+      <Filter>수업\03 StressTest</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include.h" />
     <ClInclude Include="..\Binary\protocol.h" />
+    <ClInclude Include="protocol.h">
+      <Filter>수업\03 StressTest</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
