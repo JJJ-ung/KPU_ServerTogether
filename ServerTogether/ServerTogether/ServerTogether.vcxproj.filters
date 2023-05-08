@@ -16,6 +16,9 @@
     <Filter Include="수업\03 StressTest">
       <UniqueIdentifier>{47339ec2-ed3d-4ff8-a5d2-de5840a12c25}</UniqueIdentifier>
     </Filter>
+    <Filter Include="수업\04 IOCP">
+      <UniqueIdentifier>{b8a91d93-4864-42fa-a39c-0cac2cc0a991}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ServerTogether.cpp" />
@@ -69,6 +72,9 @@
     </ClCompile>
     <ClCompile Include="multi_iocp_server.cpp">
       <Filter>수업\03 StressTest</Filter>
+    </ClCompile>
+    <ClCompile Include="230501_view.cpp">
+      <Filter>수업\04 IOCP</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

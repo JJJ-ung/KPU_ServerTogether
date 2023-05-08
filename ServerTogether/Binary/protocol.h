@@ -1,9 +1,11 @@
 constexpr int PORT_NUM = 4000;
-constexpr int BUF_SIZE = 200; 
+constexpr int BUF_SIZE = 200;
 constexpr int NAME_SIZE = 20;
 
-constexpr int W_WIDTH = 8;
-constexpr int W_HEIGHT = 8;
+constexpr int MAX_USER = 5000;
+
+constexpr int W_WIDTH = 400;
+constexpr int W_HEIGHT = 400;
 
 // Packet ID
 constexpr char CS_LOGIN = 0;
@@ -25,6 +27,7 @@ struct CS_MOVE_PACKET {
 	unsigned char size;
 	char	type;
 	char	direction;  // 0 : UP, 1 : DOWN, 2 : LEFT, 3 : RIGHT
+	unsigned	move_time;
 };
 
 struct SC_LOGIN_INFO_PACKET {
@@ -53,6 +56,7 @@ struct SC_MOVE_PLAYER_PACKET {
 	char	type;
 	short	id;
 	short	x, y;
+	unsigned int move_time;
 };
 
 #pragma pack (pop)
