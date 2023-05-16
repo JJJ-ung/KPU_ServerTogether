@@ -76,6 +76,9 @@
     <ClCompile Include="230501_view.cpp">
       <Filter>수업\04 IOCP</Filter>
     </ClCompile>
+    <ClCompile Include="230508_NPC.cpp">
+      <Filter>수업\04 IOCP</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include.h" />
