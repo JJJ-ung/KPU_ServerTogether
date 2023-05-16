@@ -1,11 +1,11 @@
 constexpr int PORT_NUM = 4000;
-constexpr int BUF_SIZE = 200;
+constexpr int BUF_SIZE = 4096;
 constexpr int NAME_SIZE = 20;
 
-constexpr int MAX_USER = 5000;
+constexpr int MAX_USER = 100000;
 
-constexpr int W_WIDTH = 400;
-constexpr int W_HEIGHT = 400;
+constexpr int W_WIDTH = 2000;
+constexpr int W_HEIGHT = 2000;
 
 // Packet ID
 constexpr char CS_LOGIN = 0;
