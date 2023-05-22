@@ -28,7 +28,7 @@
     <ClCompile Include="230328_CLIENTsample.cpp">
       <Filter>수업\01 IOCP</Filter>
     </ClCompile>
-    <ClCompile Include="client.cpp">
+    <ClCompile Include="StressTestclient.cpp">
       <Filter>수업\02 StressTest</Filter>
     </ClCompile>
   </ItemGroup>
